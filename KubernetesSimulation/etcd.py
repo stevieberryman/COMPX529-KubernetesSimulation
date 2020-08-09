@@ -21,4 +21,9 @@ class Etcd:
 		self.endPointList = []
 		self.pendingReqs = []
 		self.reqCreator = ThreadPoolExecutor(max_workers=1)
+	
+	def __enter__(self):
+		pass
 
+	def __exit__(self):
+		pass

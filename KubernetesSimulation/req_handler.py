@@ -14,5 +14,5 @@ class ReqHandler:
 			self.apiServer.requestWaiting.wait()
 			with self.apiServer.etcdLock:
 			
-			self.apiServer.requestWaiting.clear()
+				self.apiServer.requestWaiting.clear()
 		print("ReqHandlerShutdown")

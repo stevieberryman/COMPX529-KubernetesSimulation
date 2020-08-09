@@ -23,6 +23,7 @@ depControllerThread = threading.Thread(target=depController)
 nodeControllerThread = threading.Thread(target=nodeController)
 reqHandlerThread = threading.Thread(target=reqHandler)
 schedulerThread = threading.Thread(target = scheduler)
+etcdLock = threading.Lock()
 print("Threads Starting")
 reqHandlerThread.start()
 nodeControllerThread.start()
@@ -45,6 +46,8 @@ for command in commands:
 			apiServer.RemoveDeployment(cmdAttributes[1:])
 		elif cmdAttributes[0] == 'ReqIn':
 			apiServer.PushReq(cmdAttributes[1:])
+		elif cmdAttributes[0] == 'Sleep':
+			time.sleep(int(cmdAttributes[1]))
 	time.sleep(5)
 time.sleep(5)
 print("Shutting down threads")
