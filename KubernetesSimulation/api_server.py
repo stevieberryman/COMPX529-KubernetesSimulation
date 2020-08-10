@@ -85,12 +85,6 @@ class APIServer:
 # CrashPod finds a pod from a given deployment and sets its status to 'FAILED'
 # Any resource utilisation on the pod will be reset to the base 0
 	def CrashPod(self, deploymentLabel):
-		for i in self.etcd.deploymentList:
-			if i.deploymentLabel == deploymentLabel[0]:
-				self.etcd.deploymentList.status
-			else:
-				print('Deployment not found')
-				continue
 		pass
 # AssignNode takes a pod in the pendingPodList and transfers it to the internal podList of a specified WorkerNode
 	def AssignNode(self, pod, worker):
