@@ -33,6 +33,10 @@ class APIServer:
 		
 # CreateWorker creates a WorkerNode from a list of arguments and adds it to the etcd nodeList
 	def CreateWorker(self, info):
+		worker = WorkerNode(info) # Init worker
+		print(len(self.etcd.nodeList))
+		self.etcd.nodeList.append(worker) # Add to nodeList
+		print(len(self.etcd.nodeList))
 		pass
 # CreateDeployment creates a Deployment object from a list of arguments and adds it to the etcd deploymentList
 	def CreateDeployment(self, info):
