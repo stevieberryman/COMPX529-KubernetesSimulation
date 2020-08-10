@@ -1,1 +1,4 @@
 AddNode Node_2 5
+Deploy Deployment_AA 2 1
+AddNode Node_1 5
+Deploy Deployment_AB 3 1

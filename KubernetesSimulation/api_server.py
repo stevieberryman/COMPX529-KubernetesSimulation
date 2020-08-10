@@ -33,13 +33,19 @@ class APIServer:
 		
 # CreateWorker creates a WorkerNode from a list of arguments and adds it to the etcd nodeList
 	def CreateWorker(self, info):
+		print('***Creating Worker***')
 		worker = WorkerNode(info) # Init worker
-		print(len(self.etcd.nodeList))
+		print('Current amount of nodes: ', len(self.etcd.nodeList))
 		self.etcd.nodeList.append(worker) # Add to nodeList
-		print(len(self.etcd.nodeList))
+		print('New amount of nodes: ', len(self.etcd.nodeList))
 		pass
 # CreateDeployment creates a Deployment object from a list of arguments and adds it to the etcd deploymentList
 	def CreateDeployment(self, info):
+		deployment = Deployment(info) # Init worker
+		print('***Creating Deployment***')
+		print('Current amount of deplotments: ', len(self.etcd.deploymentList))
+		self.etcd.deploymentList.append(deployment) # Add to nodeList
+		print('New amount of deplotments: ', len(self.etcd.deploymentList))
 		pass
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
