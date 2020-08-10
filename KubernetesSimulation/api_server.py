@@ -3,6 +3,7 @@ from end_point import EndPoint
 from etcd import Etcd
 from pod import Pod
 from worker_node import WorkerNode
+from requests import Request
 import threading
 
 #The APIServer handles the communication between controllers and the cluster. It houses
@@ -49,6 +50,16 @@ class APIServer:
 		pass
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
+		print('***Removing {}***'.format(deploymentLabel[0]))
+		print('Current amount of deplotments: ', len(self.etcd.deploymentList))
+		for i in self.etcd.deploymentList:
+			if i.deploymentLabel == deploymentLabel[0]:
+				self.etcd.deploymentList.remove(i)
+				print('***Removed {}***'.format(deploymentLabel))
+			else:
+				print('Deployment not found')
+				continue
+		print('New amount of deplotments: ', len(self.etcd.deploymentList))
 		pass
 # CreateEndpoint creates an EndPoint object using information from a provided Pod and Node and appends it 
 # to the endPointList in etcd
@@ -73,14 +84,20 @@ class APIServer:
 		pass
 # CrashPod finds a pod from a given deployment and sets its status to 'FAILED'
 # Any resource utilisation on the pod will be reset to the base 0
-	def CrashPod(self, depLabel):
+	def CrashPod(self, deploymentLabel):
+		for i in self.etcd.deploymentList:
+			if i.deploymentLabel == deploymentLabel[0]:
+				self.etcd.deploymentList.status
+			else:
+				print('Deployment not found')
+				continue
 		pass
 # AssignNode takes a pod in the pendingPodList and transfers it to the internal podList of a specified WorkerNode
 	def AssignNode(self, pod, worker):
 		pass
 #	pushReq adds the incoming request to the handling queue	
 	def pushReq(self, info):	
-	    self.etcd.reqCreator.submit(reqHandle, info)
+	    self.etcd.reqCreator.submit(self.reqHandle, info)
 
 
 #Creates requests and notifies the handler of request to be dealt with

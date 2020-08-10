@@ -16,6 +16,6 @@ class NodeController:
 		print("NodeController start")
 		while self.running:
 			with self.apiServer.etcdLock:
-
-				time.sleep(self.time)
+				pass
+			time.sleep(self.time)
 		print("NodeContShutdown")
