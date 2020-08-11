@@ -3,8 +3,9 @@ from end_point import EndPoint
 from etcd import Etcd
 from pod import Pod
 from worker_node import WorkerNode
-from requests import Request
 import threading
+from requests import Request
+from random import Random, randrange
 
 #The APIServer handles the communication between controllers and the cluster. It houses
 #the methods that can be called for cluster management
@@ -44,22 +45,21 @@ class APIServer:
 	def CreateDeployment(self, info):
 		deployment = Deployment(info) # Init worker
 		print('***Creating Deployment***')
-		print('Current amount of deplotments: ', len(self.etcd.deploymentList))
+		print('Current amount of deployments: ', len(self.etcd.deploymentList))
 		self.etcd.deploymentList.append(deployment) # Add to nodeList
-		print('New amount of deplotments: ', len(self.etcd.deploymentList))
+		print('New amount of deployments: ', len(self.etcd.deploymentList))
 		pass
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
 		print('***Removing {}***'.format(deploymentLabel[0]))
-		print('Current amount of deplotments: ', len(self.etcd.deploymentList))
+		print('Current amount of deployments: ', len(self.etcd.deploymentList))
 		for i in self.etcd.deploymentList:
 			if i.deploymentLabel == deploymentLabel[0]:
 				self.etcd.deploymentList.remove(i)
 				print('***Removed {}***'.format(deploymentLabel))
 			else:
-				print('Deployment not found')
 				continue
-		print('New amount of deplotments: ', len(self.etcd.deploymentList))
+		print('New amount of deployments: ', len(self.etcd.deploymentList))
 		pass
 # CreateEndpoint creates an EndPoint object using information from a provided Pod and Node and appends it 
 # to the endPointList in etcd
@@ -73,6 +73,17 @@ class APIServer:
 		pass
 # CreatePod finds the resource allocations associated with a deployment and creates a pod using those metrics
 	def CreatePod(self, deploymentLabel):
+		deployment = None
+		for i in self.etcd.deploymentList:
+			if i.deploymentLabel == deploymentLabel[0]:
+				deployment = i
+				print('***Found deployment {}***'.format(deploymentLabel))
+				break
+			else:
+				continue
+		name = deploymentLabel + Random.randint()
+		pod = Pod(name, deployment.cpuCost, deploymentLabel)
+		self.etcd.pendingPodList.append(pod)
 		pass
 # GetPod returns the pod object stored in the internal podList of a WorkerNode
 	def GetPod(self, endPoint):

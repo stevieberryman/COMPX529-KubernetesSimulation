@@ -3,8 +3,8 @@ from deployment import Deployment
 from end_point import EndPoint
 from worker_node import WorkerNode
 from concurrent.futures import ThreadPoolExecutor
-from requests import Request
 import threading
+# from requests import Reques
 
 #Etcd is the storage component of the cluster that allows for comparison between expected
 #configuration and real time information.
