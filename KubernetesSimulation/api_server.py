@@ -64,13 +64,21 @@ class APIServer:
 # CreateEndpoint creates an EndPoint object using information from a provided Pod and Node and appends it 
 # to the endPointList in etcd
 	def CreateEndPoint(self, pod, worker):
+		endPoint = EndPoint(pod, pod.deploymentLabel, worker)
+		self.etcd.endPointList.append(endPoint)
 		pass
 # CheckEndPoint checks that the associated pod is still present on the expected WorkerNode
 	def CheckEndPoint(self, endPoint):
 		pass
 # GetEndPointsByLabel returns a list of EndPoints associated with a given deployment
 	def GetEndPointsByLabel(self, deploymentLabel):
-		pass
+		endPointList = []
+		for i in self.etcd.endPointList:
+			if i.deploymentLabel == deploymentLabel:
+				endPointList.append(i)
+			else:
+				continue
+		return endPointList
 # CreatePod finds the resource allocations associated with a deployment and creates a pod using those metrics
 	def CreatePod(self, deploymentLabel):
 		deployment = None
