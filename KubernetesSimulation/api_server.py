@@ -51,6 +51,8 @@ class APIServer:
 		pass
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
+		endPoints = self.GetEndPointsByLabel(deploymentLabel) # For pod reference to deployment
+		pods = []
 		print('***Removing {}***'.format(deploymentLabel[0]))
 		print('Current amount of deployments: ', len(self.etcd.deploymentList))
 		for i in self.etcd.deploymentList:
@@ -60,6 +62,13 @@ class APIServer:
 			else:
 				continue
 		print('New amount of deployments: ', len(self.etcd.deploymentList))
+		# Terminate pods
+		print('***Terminating pods***')
+		for j in endPoints:
+			if j.deploymentLabel == deploymentLabel:
+				self.TerminatePod(j) # mCall local method to terminate pod based on endpoint
+			else:
+				continue
 		pass
 # CreateEndpoint creates an EndPoint object using information from a provided Pod and Node and appends it 
 # to the endPointList in etcd
@@ -114,6 +123,6 @@ class APIServer:
 
 
 #Creates requests and notifies the handler of request to be dealt with
-	def reqHandle(self, info):
+	def reqHandle(self, info): # reqAppend. This does not handle only adds requests singly
 		self.etcd.pendingReqs.append(Request(info))
 		self.requestWaiting.set()
