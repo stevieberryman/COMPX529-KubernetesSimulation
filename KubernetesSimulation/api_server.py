@@ -51,8 +51,7 @@ class APIServer:
 		pass
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
-		endPoints = self.GetEndPointsByLabel(deploymentLabel) # For pod reference to deployment
-		pods = []
+		endPoints = self.GetEndPointsByLabel(deploymentLabel) # For pod reference to deployment being removed
 		print('***Removing {}***'.format(deploymentLabel[0]))
 		print('Current amount of deployments: ', len(self.etcd.deploymentList))
 		for i in self.etcd.deploymentList:
@@ -66,7 +65,7 @@ class APIServer:
 		print('***Terminating pods***')
 		for j in endPoints:
 			if j.deploymentLabel == deploymentLabel:
-				self.TerminatePod(j) # mCall local method to terminate pod based on endpoint
+				self.TerminatePod(j) # Call local method to terminate pod based on endpoint
 			else:
 				continue
 		pass
@@ -78,7 +77,13 @@ class APIServer:
 		pass
 # CheckEndPoint checks that the associated pod is still present on the expected WorkerNode
 	def CheckEndPoint(self, endPoint):
-		pass
+		result = False
+		for i in self.etcd.nodeList:
+			if endPoint.node == i:
+				result = True
+			else:
+				continue
+		return result
 # GetEndPointsByLabel returns a list of EndPoints associated with a given deployment
 	def GetEndPointsByLabel(self, deploymentLabel):
 		endPointList = []
