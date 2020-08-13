@@ -35,36 +35,33 @@ class APIServer:
 		
 # CreateWorker creates a WorkerNode from a list of arguments and adds it to the etcd nodeList
 	def CreateWorker(self, info):
-		print('***Creating Worker***')
+		print('***Creating Worker node: {}***'.format(info[0]))
 		worker = WorkerNode(info) # Init worker
-		print('Current amount of nodes: {}'.format(len(self.etcd.nodeList)))
 		self.etcd.nodeList.append(worker) # Add to nodeList
 		print('New amount of nodes: {}\n'.format(len(self.etcd.nodeList)))
 		pass
 # CreateDeployment creates a Deployment object from a list of arguments and adds it to the etcd deploymentList
 	def CreateDeployment(self, info):
 		deployment = Deployment(info) # Init worker
-		print('***Creating Deployment***')
-		print('Current amount of deployments: {}'.format(len(self.etcd.deploymentList)))
+		print('***Creating Deployment {}***'.format(info[0]))
 		self.etcd.deploymentList.append(deployment) # Add to nodeList
 		print('New amount of deployments: {}\n'.format(len(self.etcd.deploymentList)))
 		pass
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
 		# Remove deployment
-		print('***Removing {}***'.format(deploymentLabel[0]))
-		print('Current amount of deployments: ', len(self.etcd.deploymentList))
+		print('***Removing deplyment: {}***'.format(deploymentLabel[0]))
 		for i in self.etcd.deploymentList:
 			if i.deploymentLabel == deploymentLabel[0]:
 				self.etcd.deploymentList.remove(i)
 			else:
 				continue
-		print('New amount of deployments: ', len(self.etcd.deploymentList))
+		print('New amount of deployments: {}'.format(len(self.etcd.deploymentList)))
 		# Terminate pods
-		endPoints = self.GetEndPointsByLabel(deploymentLabel) # For pod reference to deployment being removed
+		endPoints = self.GetEndPointsByLabel(deploymentLabel[0]) # For pod reference to deployment being removed
 		# print(endPoints)
 		for j in endPoints:
-			if j.deploymentLabel == deploymentLabel:
+			if j.deploymentLabel == deploymentLabel[0]:
 				self.TerminatePod(j) # Call local method to terminate pod based on endpoint
 			else:
 				continue
@@ -98,7 +95,7 @@ class APIServer:
 		return endPointList
 # CreatePod finds the resource allocations associated with a deployment and creates a pod using those metrics
 	def CreatePod(self, deploymentLabel):
-		print('***Creating new pod***')
+		print('***Creating new pod: {}***\n'.format(deploymentLabel))
 		deployment = Deployment
 		for i in self.etcd.deploymentList:
 			if i.deploymentLabel == deploymentLabel:
@@ -110,7 +107,6 @@ class APIServer:
 		name = deploymentLabel
 		pod = Pod(name, deployment.cpuCost, deploymentLabel)
 		self.etcd.pendingPodList.append(pod)
-		print('***Pod {} created***\n'.format(name))
 		pass
 # GetPod returns the pod object stored in the internal podList of a WorkerNode
 	def GetPod(self, endPoint):
@@ -119,10 +115,9 @@ class APIServer:
 # No new requests will be sent to a pod marked 'TERMINATING'. Once its current requests have been handled,
 # it will be deleted by the Kubelet
 	def TerminatePod(self, endPoint):
-		print('***Terminating pods***')
+		print('***Terminating pod: {}***'.format(endPoint.pod.podName))
 		pod = endPoint.pod
 		pod.status = 'TERMINATING'
-		print('***Pod {} status TERMINATING\n'.format(pod.podName))
 		pass
 # CrashPod finds a pod from a given deployment and sets its status to 'FAILED'
 # Any resource utilisation on the pod will be reset to the base 0

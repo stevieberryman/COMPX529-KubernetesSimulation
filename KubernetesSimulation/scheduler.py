@@ -21,7 +21,6 @@ class Scheduler(threading.Thread):
 					for pod in self.apiServer.etcd.pendingPodList: # iterate pods
 							for worker in self.apiServer.etcd.nodeList: # iterate workerNodes
 								if worker.available_cpu >= pod.available_cpu: # check cpu availability
-									print('Node available for pod: {}'.format(pod.podName))
 									self.apiServer.CreateEndPoint(pod, worker)
 									self.apiServer.etcd.pendingPodList.remove(pod)
 									self.apiServer.etcd.runningPodList.append(pod)

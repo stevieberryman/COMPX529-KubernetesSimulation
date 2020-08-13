@@ -21,8 +21,8 @@ class NodeController:
 						self.apiServer.etcd.runningPodList.remove(endPoint.pod)
 						self.apiServer.etcd.pendingPodList.append(endPoint.pod)
 						endPoint.pod.status = 'PENDING'
-						endPoint.worker.podList.remove(endPoint.pod)
-						endPoint.worker.available_cpu += 1
+						endPoint.node.podList.remove(endPoint.pod)
+						endPoint.node.available_cpu += 1
 				pass
 		time.sleep(self.time)
 		print("NodeContShutdown")

@@ -1,3 +1,4 @@
 AddNode Node_2 5
-Deploy Deployment_AA 2 1
+Deploy Deployment_AA 1 1
+Deploy Deployment_AB 1 1
 DeleteDeployment Deployment_AA
