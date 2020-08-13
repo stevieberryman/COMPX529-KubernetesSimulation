@@ -52,12 +52,11 @@ class APIServer:
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
 		# Remove deployment
-		print('***Removing {}***'.format(deploymentLabel[0]))
+		print('***Removing {}***'.format(deploymentLabel))
 		print('Current amount of deployments: ', len(self.etcd.deploymentList))
 		for i in self.etcd.deploymentList:
-			if i.deploymentLabel == deploymentLabel[0]:
+			if i.deploymentLabel == deploymentLabel:
 				self.etcd.deploymentList.remove(i)
-				print('***Removed {}***'.format(deploymentLabel))
 			else:
 				continue
 		print('New amount of deployments: ', len(self.etcd.deploymentList))
