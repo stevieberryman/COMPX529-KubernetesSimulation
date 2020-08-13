@@ -13,9 +13,23 @@ class Scheduler(threading.Thread):
 		self.time = LOOPTIME
 	
 	def __call__(self):
-		print("Scheduler start")
+		print('Scheduler start')
 		while self.running:
 			with self.apiServer.etcdLock:
-				pass
+				if len(self.apiServer.etcd.pendingPodList) > 0:
+					print('***Attempting to assign {} pod(s)***'.format(len(self.apiServer.etcd.pendingPodList)))
+					for pod in self.apiServer.etcd.pendingPodList: # iterate pods
+						for worker in self.apiServer.etcd.nodeList: # iterate workerNodes
+							if worker.available_cpu >= pod.available_cpu: # check cpu availability
+								print('Node available to assign pod')
+								self.apiServer.CreateEndPoint(pod, worker)
+								self.apiServer.etcd.pendingPodList.remove(pod)
+								self.apiServer.etcd.runningPodList.append(pod)
+								print('***Pod {} assigned to Node: {}***\n'.format(pod.podName, worker.label))
+							else: # not enough cpu resources
+								continue
+				else:
+					pass
+				# print('Current scheduler pass metrics:\nPending pods: {}\nRunning pods: {}\n'.format(len(self.apiServer.etcd.pendingPodList), len(self.apiServer.etcd.runningPodList)))
 			time.sleep(self.time)
-		print("SchedShutdown")
+		print('SchedShutdown')
