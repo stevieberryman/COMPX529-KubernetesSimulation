@@ -121,6 +121,8 @@ class APIServer:
 		pass
 # AssignNode takes a pod in the pendingPodList and transfers it to the internal podList of a specified WorkerNode
 	def AssignNode(self, pod, worker):
+		self.etcd.pendingPodList.remove(pod)
+		worker.podList.append(pod)
 		pass
 #	pushReq adds the incoming request to the handling queue	
 	def pushReq(self, info):	
