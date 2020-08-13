@@ -32,12 +32,15 @@ class NodeController:
 								endPoint.node.podList.remove(endPoint.pod) # remove pod from worker podlist
 								endPoint.node.available_cpu += endPoint.pod.available_cpu # restore node resources
 							elif endPoint.pod.status == 'TERMINATING': # status check Terminated pods should be deleted from the system with the deployment
+								# remove from pending if exists in list
 								for i in self.apiServer.etcd.pendingPodList:
 									if i == endPoint.pod:
 										self.apiServer.etcd.pendingPodList.remove(i)
+								# remove from running if exists in list
 								for j in self.apiServer.etcd.runningPodList:
 									if j == endPoint.pod:
 										self.apiServer.etcd.runningPodList.remove(j)
+								# remove stale endpoint
 								self.apiServer.etcd.endPointList.remove(endPoint)
 								pass
 						else:
