@@ -29,7 +29,7 @@ reqHandlerThread.start()
 nodeControllerThread.start()
 depControllerThread.start()
 schedulerThread.start()
-print("ReadingFile")
+print("ReadingFile\n")
 
 instructions = open("instructions.txt", "r")
 commands = instructions.readlines()
