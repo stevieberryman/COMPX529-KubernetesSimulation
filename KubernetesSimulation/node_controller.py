@@ -16,13 +16,22 @@ class NodeController:
 		print("NodeController start")
 		while self.running:
 			with self.apiServer.etcdLock:
-				for endPoint in self.apiServer.etcd.endPointList:
-					if endPoint.pod.status == 'TERMINATING':
-						self.apiServer.etcd.runningPodList.remove(endPoint.pod)
-						self.apiServer.etcd.pendingPodList.append(endPoint.pod)
-						endPoint.pod.status = 'PENDING'
-						endPoint.node.podList.remove(endPoint.pod)
-						endPoint.node.available_cpu += 1
-				pass
+				if len(self.apiServer.etcd.endPointList) > 0:
+					for endPoint in self.apiServer.etcd.endPointList:
+						if self.apiServer.CheckEndPoint(endPoint):
+							if endPoint.pod.status == 'FAILED':
+								print('***Removing endpoint: {}'.format(endPoint.deploymentLabel))
+								self.apiServer.etcd.runningPodList.remove(endPoint.pod)
+								self.apiServer.etcd.pendingPodList.append(endPoint.pod)
+								endPoint.pod.status = 'PENDING'
+								endPoint.node.podList.remove(endPoint.pod)
+								endPoint.node.available_cpu += endPoint.pod.available_cpu
+							elif endPoint.pod.status == 'TERMINATING':
+								self.apiServer.etcd.endPointList.remove(endPoint)
+								pass
+						else:
+							self.apiServer.etcd.endPointList.remove(endPoint)
+				else:
+					pass
 		time.sleep(self.time)
 		print("NodeContShutdown")
