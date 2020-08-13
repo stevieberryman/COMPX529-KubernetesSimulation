@@ -26,7 +26,9 @@ class Scheduler(threading.Thread):
 								self.apiServer.etcd.pendingPodList.remove(pod)
 								self.apiServer.etcd.runningPodList.append(pod)
 								pod.status = 'RUNNING'
+								worker.podList.append(pod)
 								print('***Pod {} assigned to Node: {}***\n'.format(pod.podName, worker.label))
+								# print('{} {}'.format(len(self.apiServer.etcd.runningPodList), len(worker.podList)))
 							else: # not enough cpu resources
 								continue
 				else:
