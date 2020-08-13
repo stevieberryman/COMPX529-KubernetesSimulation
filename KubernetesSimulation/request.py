@@ -8,4 +8,4 @@ class Request:
 	def __init__(self, APISERVER, INFOLIST):
 		self.label = INFOLIST[0]
 		self.deploymentLabel = INFOLIST[1]
-		self.execTime = INFOLIST[2]
+		self.execTime = int(INFOLIST[2])

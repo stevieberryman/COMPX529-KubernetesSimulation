@@ -13,6 +13,10 @@ class ReqHandler:
 		while self.running:
 			self.apiServer.requestWaiting.wait()
 			with self.apiServer.etcdLock:
+				for req in self.apiServer.etcd.pendingReqs:
+					for endPoint in self.apiServer.etcd.endPointList:
+						if endPoint.pod.podName == req.deploymentLabel:
+							endPoint.pod.HandleRequest(req.execTime)
 				pass
 			self.apiServer.requestWaiting.clear()
 		print("ReqHandlerShutdown")
