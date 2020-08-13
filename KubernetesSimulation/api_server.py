@@ -48,7 +48,6 @@ class APIServer:
 		print('Current amount of deployments: {}'.format(len(self.etcd.deploymentList)))
 		self.etcd.deploymentList.append(deployment) # Add to nodeList
 		print('New amount of deployments: {}\n'.format(len(self.etcd.deploymentList)))
-		self.CreatePod(deployment.deploymentLabel)
 		pass
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
@@ -75,7 +74,8 @@ class APIServer:
 # to the endPointList in etcd
 	def CreateEndPoint(self, pod, worker):
 		print('***Creating endpoint {}***'.format(pod.deploymentLabel))
-		label = pod.deploymentLabel[:-4]
+		# label = pod.deploymentLabel[:-4]
+		label = pod.deploymentLabel
 		endPoint = EndPoint(pod, label, worker)
 		self.etcd.endPointList.append(endPoint)
 		pass
@@ -104,13 +104,11 @@ class APIServer:
 		for i in self.etcd.deploymentList:
 			if i.deploymentLabel == deploymentLabel:
 				deployment = i
-				print('***Found deployment {}***'.format(deployment.deploymentLabel))
-				break
 			else:
 				continue
 		# name = deploymentLabel + '_POD_' + str(randrange(1, 100))
-		# name = deploymentLabel
-		name = '{}_POD'.format(deploymentLabel)
+		# name = '{}_POD'.format(deploymentLabel)
+		name = deploymentLabel
 		pod = Pod(name, deployment.cpuCost, deploymentLabel)
 		self.etcd.pendingPodList.append(pod)
 		print('***Pod {} created***\n'.format(name))
