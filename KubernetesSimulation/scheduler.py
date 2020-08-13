@@ -34,6 +34,6 @@ class Scheduler(threading.Thread):
 									continue
 				else:
 					pass
-				print('Current scheduler pass metrics:\nPending pods: {}\nRunning pods: {}\n'.format(len(self.apiServer.etcd.pendingPodList), len(self.apiServer.etcd.runningPodList)))
+				# print('Current scheduler pass metrics:\nPending pods: {}\nRunning pods: {}\n'.format(len(self.apiServer.etcd.pendingPodList), len(self.apiServer.etcd.runningPodList)))
 			time.sleep(self.time)
 		print('SchedShutdown')

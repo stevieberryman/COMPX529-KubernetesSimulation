@@ -19,4 +19,5 @@ class ReqHandler:
 							endPoint.pod.HandleRequest(req.execTime)
 				pass
 			self.apiServer.requestWaiting.clear()
+		time.sleep(5)
 		print("ReqHandlerShutdown")
