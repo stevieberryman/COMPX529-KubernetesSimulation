@@ -52,7 +52,6 @@ class APIServer:
 		pass
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
-		endPoints = self.GetEndPointsByLabel(deploymentLabel) # For pod reference to deployment being removed
 		print('***Removing {}***'.format(deploymentLabel[0]))
 		print('Current amount of deployments: ', len(self.etcd.deploymentList))
 		for i in self.etcd.deploymentList:
@@ -63,6 +62,7 @@ class APIServer:
 				continue
 		print('New amount of deployments: ', len(self.etcd.deploymentList))
 		# Terminate pods
+		endPoints = self.GetEndPointsByLabel(deploymentLabel) # For pod reference to deployment being removed
 		for j in endPoints:
 			if j.deploymentLabel == deploymentLabel:
 				self.TerminatePod(j) # Call local method to terminate pod based on endpoint
@@ -111,7 +111,7 @@ class APIServer:
 		pass
 # GetPod returns the pod object stored in the internal podList of a WorkerNode
 	def GetPod(self, endPoint):
-		pass
+		return endPoint.pod
 # TerminatePod finds the pod associated with a given EndPoint and sets it's status to 'TERMINATING'
 # No new requests will be sent to a pod marked 'TERMINATING'. Once its current requests have been handled,
 # it will be deleted by the Kubelet
@@ -131,10 +131,10 @@ class APIServer:
 		worker.podList.append(pod)
 		pass
 #	pushReq adds the incoming request to the handling queue	
-	def pushReq(self, info):
-	    self.etcd.reqCreator.submit(self.reqHandle, info)
+	def PushReq(self, info):
+	    self.etcd.reqCreator.submit(self.ReqHandle, info)
 
 #Creates requests and notifies the handler of request to be dealt with
-	def reqHandle(self, info): # reqAppend. This does not handle only adds requests singly
+	def ReqHandle(self, info): # reqAppend. This does not handle only adds requests singly
 		self.etcd.pendingReqs.append(Request(self, info))
 		self.requestWaiting.set()
