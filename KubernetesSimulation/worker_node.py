@@ -9,10 +9,9 @@
 
 class WorkerNode:
 
-
 	def __init__(self, INFOLIST):
 		self.label = INFOLIST[0]
 		self.assigned_cpu = INFOLIST[1]
 		self.available_cpu = int(self.assigned_cpu)
 		self.status = 'UP'
-		self.podlist = [] # Created manually (Was not stubd)
+		self.podList = [] # Created manually (Was not stubd)
