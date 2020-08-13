@@ -95,6 +95,7 @@ class APIServer:
 		return endPointList
 # CreatePod finds the resource allocations associated with a deployment and creates a pod using those metrics
 	def CreatePod(self, deploymentLabel):
+		print('***Creating new pod***')
 		deployment = Deployment
 		for i in self.etcd.deploymentList:
 			if i.deploymentLabel == deploymentLabel:
