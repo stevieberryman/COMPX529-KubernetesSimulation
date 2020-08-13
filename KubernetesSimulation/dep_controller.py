@@ -20,5 +20,5 @@ class DepController:
 						self.apiServer.CreatePod(deployment.deploymentLabel)
 						deployment.currentReplicas += 1
 				pass
-		time.sleep(self.time)
+			time.sleep(self.time)
 		print("DepContShutdown")

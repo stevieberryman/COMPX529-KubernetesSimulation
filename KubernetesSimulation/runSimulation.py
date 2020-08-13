@@ -49,7 +49,7 @@ for command in commands:
 		elif cmdAttributes[0] == 'Sleep':
 			time.sleep(int(cmdAttributes[1]))
 	time.sleep(5)
-time.sleep(5)
+time.sleep(20)
 print("Shutting down threads")
 
 reqHandler.running = False

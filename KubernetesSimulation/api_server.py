@@ -95,16 +95,16 @@ class APIServer:
 		return endPointList
 # CreatePod finds the resource allocations associated with a deployment and creates a pod using those metrics
 	def CreatePod(self, deploymentLabel):
-		print('***Creating new pod: {}***\n'.format(deploymentLabel))
+		name = '{}_POD_{}'.format(deploymentLabel, str(randrange(1, 100)))
+		# name = '{}_POD'.format(deploymentLabel)
+		# name = deploymentLabel
+		print('***Creating new pod: {}***\n'.format(name))
 		deployment = Deployment
 		for i in self.etcd.deploymentList:
 			if i.deploymentLabel == deploymentLabel:
 				deployment = i
 			else:
 				continue
-		# name = deploymentLabel + '_POD_' + str(randrange(1, 100))
-		# name = '{}_POD'.format(deploymentLabel)
-		name = deploymentLabel
 		pod = Pod(name, deployment.cpuCost, deploymentLabel)
 		self.etcd.pendingPodList.append(pod)
 		pass
@@ -122,6 +122,10 @@ class APIServer:
 # CrashPod finds a pod from a given deployment and sets its status to 'FAILED'
 # Any resource utilisation on the pod will be reset to the base 0
 	def CrashPod(self, deploymentLabel):
+		endPoints = self.GetEndPointsByLabel(deploymentLabel[0])
+		for i in endPoints:
+			print('***Crashing pod: {}'.format(i.pod.podName))
+			i.pod.status = 'FAILED'
 		pass
 # AssignNode takes a pod in the pendingPodList and transfers it to the internal podList of a specified WorkerNode
 	def AssignNode(self, pod, worker):

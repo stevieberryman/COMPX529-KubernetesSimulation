@@ -16,22 +16,33 @@ class NodeController:
 		print("NodeController start")
 		while self.running:
 			with self.apiServer.etcdLock:
-				if len(self.apiServer.etcd.endPointList) > 0:
-					for endPoint in self.apiServer.etcd.endPointList:
-						if self.apiServer.CheckEndPoint(endPoint):
-							if endPoint.pod.status == 'FAILED':
+				if len(self.apiServer.etcd.endPointList) > 0: # List not empty
+					for endPoint in self.apiServer.etcd.endPointList: # iterate endpoints
+						if self.apiServer.CheckEndPoint(endPoint): # check endpoint is not stale
+							if endPoint.pod.status == 'FAILED': # status check Failed pods should be requed
 								print('***Removing endpoint: {}'.format(endPoint.deploymentLabel))
-								self.apiServer.etcd.runningPodList.remove(endPoint.pod)
-								self.apiServer.etcd.pendingPodList.append(endPoint.pod)
-								endPoint.pod.status = 'PENDING'
-								endPoint.node.podList.remove(endPoint.pod)
-								endPoint.node.available_cpu += endPoint.pod.available_cpu
-							elif endPoint.pod.status == 'TERMINATING':
+								for i in self.apiServer.etcd.pendingPodList: # already in pendingList
+									if i == endPoint.pod:
+										pass
+								for j in self.apiServer.etcd.runningPodList: # pod in runningList reque into pendingList
+									if j == endPoint.pod:
+										self.apiServer.etcd.runningPodList.remove(endPoint.pod)
+										self.apiServer.etcd.pendingPodList.append(endPoint.pod)
+								endPoint.pod.status = 'PENDING' # set new status
+								endPoint.node.podList.remove(endPoint.pod) # remove pod from worker podlist
+								endPoint.node.available_cpu += endPoint.pod.available_cpu # restore node resources
+							elif endPoint.pod.status == 'TERMINATING': # status check Terminated pods should be deleted from the system with the deployment
+								for i in self.apiServer.etcd.pendingPodList:
+									if i == endPoint.pod:
+										self.apiServer.etcd.pendingPodList.remove(i)
+								for j in self.apiServer.etcd.runningPodList:
+									if j == endPoint.pod:
+										self.apiServer.etcd.runningPodList.remove(j)
 								self.apiServer.etcd.endPointList.remove(endPoint)
 								pass
 						else:
 							self.apiServer.etcd.endPointList.remove(endPoint)
 				else:
 					pass
-		time.sleep(self.time)
+			time.sleep(self.time)
 		print("NodeContShutdown")
