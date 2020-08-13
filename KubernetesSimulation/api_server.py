@@ -4,7 +4,7 @@ from etcd import Etcd
 from pod import Pod
 from worker_node import WorkerNode
 import threading
-from requests import Request
+from request import Request
 from random import randrange
 
 #The APIServer handles the communication between controllers and the cluster. It houses
@@ -131,11 +131,10 @@ class APIServer:
 		worker.podList.append(pod)
 		pass
 #	pushReq adds the incoming request to the handling queue	
-	def pushReq(self, info):	
+	def pushReq(self, info):
 	    self.etcd.reqCreator.submit(self.reqHandle, info)
-
 
 #Creates requests and notifies the handler of request to be dealt with
 	def reqHandle(self, info): # reqAppend. This does not handle only adds requests singly
-		self.etcd.pendingReqs.append(Request(info))
+		self.etcd.pendingReqs.append(Request(self, info))
 		self.requestWaiting.set()
