@@ -114,6 +114,8 @@ class APIServer:
 # No new requests will be sent to a pod marked 'TERMINATING'. Once its current requests have been handled,
 # it will be deleted by the Kubelet
 	def TerminatePod(self, endPoint):
+		pod = endPoint.pod
+		pod.status = 'TERMINATING'
 		pass
 # CrashPod finds a pod from a given deployment and sets its status to 'FAILED'
 # Any resource utilisation on the pod will be reset to the base 0
