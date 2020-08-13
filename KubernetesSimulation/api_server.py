@@ -48,10 +48,11 @@ class APIServer:
 		print('Current amount of deployments: {}'.format(len(self.etcd.deploymentList)))
 		self.etcd.deploymentList.append(deployment) # Add to nodeList
 		print('New amount of deployments: {}\n'.format(len(self.etcd.deploymentList)))
-		# self.CreatePod(deployment.deploymentLabel)
+		self.CreatePod(deployment.deploymentLabel)
 		pass
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
+		# Remove deployment
 		print('***Removing {}***'.format(deploymentLabel[0]))
 		print('Current amount of deployments: ', len(self.etcd.deploymentList))
 		for i in self.etcd.deploymentList:
@@ -63,6 +64,7 @@ class APIServer:
 		print('New amount of deployments: ', len(self.etcd.deploymentList))
 		# Terminate pods
 		endPoints = self.GetEndPointsByLabel(deploymentLabel) # For pod reference to deployment being removed
+		# print(endPoints)
 		for j in endPoints:
 			if j.deploymentLabel == deploymentLabel:
 				self.TerminatePod(j) # Call local method to terminate pod based on endpoint
@@ -72,7 +74,9 @@ class APIServer:
 # CreateEndpoint creates an EndPoint object using information from a provided Pod and Node and appends it 
 # to the endPointList in etcd
 	def CreateEndPoint(self, pod, worker):
-		endPoint = EndPoint(pod, pod.deploymentLabel, worker)
+		print('***Creating endpoint {}***'.format(pod.deploymentLabel))
+		label = pod.deploymentLabel[:-4]
+		endPoint = EndPoint(pod, label, worker)
 		self.etcd.endPointList.append(endPoint)
 		pass
 # CheckEndPoint checks that the associated pod is still present on the expected WorkerNode
@@ -100,11 +104,13 @@ class APIServer:
 		for i in self.etcd.deploymentList:
 			if i.deploymentLabel == deploymentLabel:
 				deployment = i
-				print('***Found deployment {}***'.format(deploymentLabel))
+				print('***Found deployment {}***'.format(deployment.deploymentLabel))
 				break
 			else:
 				continue
-		name = deploymentLabel + '_POD_' + str(randrange(1, 100))
+		# name = deploymentLabel + '_POD_' + str(randrange(1, 100))
+		# name = deploymentLabel
+		name = '{}_POD'.format(deploymentLabel)
 		pod = Pod(name, deployment.cpuCost, deploymentLabel)
 		self.etcd.pendingPodList.append(pod)
 		print('***Pod {} created***\n'.format(name))
