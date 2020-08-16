@@ -17,7 +17,6 @@ class Scheduler(threading.Thread):
 		while self.running:
 			with self.apiServer.etcdLock:
 				if len(self.apiServer.etcd.pendingPodList) > 0:
-					print('***Attempting to assign {} pod(s)***'.format(len(self.apiServer.etcd.pendingPodList)))
 					for pod in self.apiServer.etcd.pendingPodList: # iterate pods
 							for worker in self.apiServer.etcd.nodeList: # iterate workerNodes
 								if worker.available_cpu >= pod.available_cpu: # check cpu availability

@@ -18,9 +18,10 @@ class ReqHandler:
 						for endPoint in self.apiServer.etcd.endPointList: # iterate endPoints
 							if endPoint.pod.status != 'TERMINATING' or endPoint.pod.status != 'FAILED': # ensure pod not marked for Termination or reQue
 								if endPoint.pod.deploymentLabel == req.deploymentLabel: # pod matches req
-									endPoint.pod.HandleRequest(req.execTime) # handle request
-					pass
+									if endPoint.pod.status == 'RUNNING':
+										endPoint.pod.HandleRequest(req.execTime) # handle request
 				else:
 					pass
+			
 			self.apiServer.requestWaiting.clear()
 		print("ReqHandlerShutdown")

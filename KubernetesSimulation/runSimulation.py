@@ -23,7 +23,6 @@ depControllerThread = threading.Thread(target=depController)
 nodeControllerThread = threading.Thread(target=nodeController)
 reqHandlerThread = threading.Thread(target=reqHandler)
 schedulerThread = threading.Thread(target = scheduler)
-etcdLock = threading.Lock()
 print("Threads Starting")
 reqHandlerThread.start()
 nodeControllerThread.start()
@@ -35,7 +34,7 @@ instructions = open("instructions.txt", "r")
 commands = instructions.readlines()
 for command in commands:
 	cmdAttributes = command.split()
-	with etcdLock:
+	with apiServer.etcdLock:
 		if cmdAttributes[0] == 'Deploy':
 			apiServer.CreateDeployment(cmdAttributes[1:])
 		elif cmdAttributes[0] == 'AddNode':
@@ -49,7 +48,7 @@ for command in commands:
 		elif cmdAttributes[0] == 'Sleep':
 			time.sleep(int(cmdAttributes[1]))
 	time.sleep(5)
-time.sleep(20)
+time.sleep(30)
 print("Shutting down threads")
 
 reqHandler.running = False

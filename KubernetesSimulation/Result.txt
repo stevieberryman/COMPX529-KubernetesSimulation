@@ -1,0 +1,181 @@
+Threads Starting
+reqHandler start
+NodeController start
+depController startScheduler start
+ReadingFile
+
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 0
+
+***Creating Worker node: Node_1***
+New amount of nodes: 1
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 0
+
+***Creating Deployment Deployment_AA***
+New amount of deployments: 1
+
+***Creating new pod: Deployment_AA_POD_21***
+
+***Creating new pod: Deployment_AA_POD_96***
+
+***Creating new pod: Deployment_AA_POD_39***
+
+***Creating new pod: Deployment_AA_POD_43***
+
+***Creating new pod: Deployment_AA_POD_57***
+
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_21 assigned to Node: Node_1***
+
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_39 assigned to Node: Node_1***
+
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_57 assigned to Node: Node_1***
+
+Current scheduler pass metrics:
+Pending pods: 2
+Running pods: 3
+
+***Creating Worker node: Node_2***
+New amount of nodes: 2
+
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_96 assigned to Node: Node_1***
+
+Current scheduler pass metrics:
+Pending pods: 1
+Running pods: 4
+
+***Creating Deployment Deployment_AB***
+New amount of deployments: 2
+
+***Creating new pod: Deployment_AB_POD_68***
+
+***Creating new pod: Deployment_AB_POD_35***
+
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_43 assigned to Node: Node_1***
+
+***Creating endpoint Deployment_AB***
+***Pod Deployment_AB_POD_35 assigned to Node: Node_2***
+
+Current scheduler pass metrics:
+Pending pods: 1
+Running pods: 6
+
+***Pod: Deployment_AA_POD_21 Handling request***
+***Pod: Deployment_AA_POD_39 Handling request***
+***Pod: Deployment_AA_POD_57 Handling request***
+***Pod: Deployment_AA_POD_96 Handling request***
+***Pod: Deployment_AA_POD_43 Handling request***
+***Crashing pod: Deployment_AA_POD_21
+***Crashing pod: Deployment_AA_POD_39
+***Crashing pod: Deployment_AA_POD_57
+***Crashing pod: Deployment_AA_POD_96
+***Crashing pod: Deployment_AA_POD_43
+***Creating endpoint Deployment_AB***
+***Pod Deployment_AB_POD_68 assigned to Node: Node_2***
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 7
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 7
+
+***Removing endpoint: Deployment_AA
+***Removing endpoint: Deployment_AA
+***Removing endpoint: Deployment_AA
+***Pod: Deployment_AB_POD_35 Handling request***
+***Pod: Deployment_AB_POD_68 Handling request***
+***Removing deployment: Deployment_AB***
+New amount of deployments: 1
+***Terminating pod: Deployment_AB_POD_35***
+
+***Terminating pod: Deployment_AB_POD_68***
+
+***Removing endpoint: Deployment_AA
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_21 assigned to Node: Node_1***
+
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_43 assigned to Node: Node_1***
+
+Current scheduler pass metrics:
+Pending pods: 2
+Running pods: 4
+
+***Removing endpoint: Deployment_AA
+***Removing deployment: Deployment_AA***
+New amount of deployments: 0
+***Terminating pod: Deployment_AA_POD_21***
+
+***Terminating pod: Deployment_AA_POD_43***
+
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_57 assigned to Node: Node_1***
+
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_96 assigned to Node: Node_1***
+
+Current scheduler pass metrics:
+Pending pods: 1
+Running pods: 5
+
+***Creating endpoint Deployment_AA***
+***Pod Deployment_AA_POD_39 assigned to Node: Node_1***
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 4
+
+***Removing deployment: Deployment_AA***
+New amount of deployments: 0
+***Terminating pod: Deployment_AA_POD_21***
+
+***Terminating pod: Deployment_AA_POD_57***
+
+***Terminating pod: Deployment_AA_POD_96***
+
+***Terminating pod: Deployment_AA_POD_39***
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 2
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 1
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 0
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 0
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 0
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 0
+
+Current scheduler pass metrics:
+Pending pods: 0
+Running pods: 0
+
+Shutting down threads
+ReqHandlerShutdown
+DepContShutdown
+NodeContShutdown
+SchedShutdown

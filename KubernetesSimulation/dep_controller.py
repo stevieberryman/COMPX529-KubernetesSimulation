@@ -15,10 +15,15 @@ class DepController:
 		print("depController start")
 		while self.running:
 			with self.apiServer.etcdLock:
-				for deployment in self.apiServer.etcd.deploymentList:
-					while deployment.currentReplicas <= deployment.expectedReplicas:
-						self.apiServer.CreatePod(deployment.deploymentLabel)
-						deployment.currentReplicas += 1
-				pass
+				if len(self.apiServer.etcd.deploymentList) > 0:
+					for deployment in self.apiServer.etcd.deploymentList:
+						if deployment.currentReplicas <= deployment.expectedReplicas:
+							while deployment.currentReplicas < deployment.expectedReplicas:
+								self.apiServer.CreatePod(deployment.deploymentLabel)
+								deployment.currentReplicas += 1
+						elif deployment.currentReplicas > deployment.expectedReplicas:
+							while deployment.currentReplicas > deployment.expectedReplicas:
+								self.apiServer.TerminatePod(self.apiServer.GetEndPointsByLabel(deployment.deploymentLabel))
+								deployment.currentReplicas -= 1
 			time.sleep(self.time)
 		print("DepContShutdown")

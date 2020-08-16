@@ -50,10 +50,11 @@ class APIServer:
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, deploymentLabel):
 		# Remove deployment
-		print('***Removing deplyment: {}***'.format(deploymentLabel[0]))
+		print('***Removing deployment: {}***'.format(deploymentLabel[0]))
 		for i in self.etcd.deploymentList:
 			if i.deploymentLabel == deploymentLabel[0]:
 				self.etcd.deploymentList.remove(i)
+				del i
 			else:
 				continue
 		print('New amount of deployments: {}'.format(len(self.etcd.deploymentList)))
@@ -65,7 +66,6 @@ class APIServer:
 				self.TerminatePod(j) # Call local method to terminate pod based on endpoint
 			else:
 				continue
-		pass
 # CreateEndpoint creates an EndPoint object using information from a provided Pod and Node and appends it 
 # to the endPointList in etcd
 	def CreateEndPoint(self, pod, worker):
@@ -110,12 +110,17 @@ class APIServer:
 		pass
 # GetPod returns the pod object stored in the internal podList of a WorkerNode
 	def GetPod(self, endPoint):
-		return endPoint.pod
+		for i in endPoint.node.podList:
+			if endPoint.pod == i:
+				pod = i
+			else:
+				continue
+		return pod
 # TerminatePod finds the pod associated with a given EndPoint and sets it's status to 'TERMINATING'
 # No new requests will be sent to a pod marked 'TERMINATING'. Once its current requests have been handled,
 # it will be deleted by the Kubelet
 	def TerminatePod(self, endPoint):
-		print('***Terminating pod: {}***'.format(endPoint.pod.podName))
+		print('***Terminating pod: {}***\n'.format(endPoint.pod.podName))
 		pod = endPoint.pod
 		pod.status = 'TERMINATING'
 		pass
@@ -126,12 +131,10 @@ class APIServer:
 		for i in endPoints:
 			print('***Crashing pod: {}'.format(i.pod.podName))
 			i.pod.status = 'FAILED'
-		pass
 # AssignNode takes a pod in the pendingPodList and transfers it to the internal podList of a specified WorkerNode
 	def AssignNode(self, pod, worker):
 		self.etcd.pendingPodList.remove(pod)
 		worker.podList.append(pod)
-		pass
 #	pushReq adds the incoming request to the handling queue	
 	def PushReq(self, info):
 	    self.etcd.reqCreator.submit(self.ReqHandle, info)

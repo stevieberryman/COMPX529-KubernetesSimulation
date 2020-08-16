@@ -1,6 +1,7 @@
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 import threading
+import time
 
 #The Pod is the unit of scaling within Kubernetes. It encapsulates the running containerized application
 #name is the name of the Pod. This is the deploymentLabel with the replica number as a suffix. ie "deploymentA1"
@@ -20,5 +21,13 @@ class Pod:
 		self.pool = ThreadPoolExecutor(max_workers=ASSIGNED_CPU)
 
 	def HandleRequest(self, EXECTIME):
-		print('***Pod: {} Handling request***'.format(self.podName))
-		handling = self.pool.submit(self.crash.wait(timeout=EXECTIME))
+		if self.pool._shutdown != True:
+			print('***Pod: {} Handling request***'.format(self.podName))
+			self.pool.submit(self.crash.wait(timeout=EXECTIME)) # Handling
+			self.available_cpu -= EXECTIME
+			time.sleep(EXECTIME)
+			self.available_cpu += EXECTIME
+			self.pool.shutdown(True)
+			return
+		else:
+			return
