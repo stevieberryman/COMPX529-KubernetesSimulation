@@ -2,10 +2,11 @@ from deployment import Deployment
 from end_point import EndPoint
 from etcd import Etcd
 from pod import Pod
+from MyController import PIDController
+from request import Request
 from worker_node import WorkerNode
 import threading
-from request import Request
-from random import randrange
+import random
 
 #The APIServer handles the communication between controllers and the cluster. It houses
 #the methods that can be called for cluster management
@@ -16,130 +17,113 @@ class APIServer:
 		self.etcdLock = threading.Lock()
 		self.kubeletList = [] 
 		self.requestWaiting = threading.Event()
+		self.controller = PIDController(0,0,0)#Tune your controller
 	
 # 	GetDeployments method returns the list of deployments stored in etcd 	
 	def GetDeployments(self):
-		return self.etcd.deploymentList
+		return self.etcd.deploymentList.copy()
 		
 #	GetWorkers method returns the list of WorkerNodes stored in etcd
 	def GetWorkers(self):
-		return self.etcd.nodeList
+		return self.etcd.nodeList.copy()
 		
 #	GetPending method returns the list of PendingPods stored in etcd
 	def GetPending(self):
-		return self.etcd.pendingPodList
+		return self.etcd.pendingPodList.copy()
 		
 #	GetEndPoints method returns the list of EndPoints stored in etcd
 	def GetEndPoints(self):
-		return self.etcd.endPointList
+		return self.etcd.endPointList.copy()
 		
 # CreateWorker creates a WorkerNode from a list of arguments and adds it to the etcd nodeList
 	def CreateWorker(self, info):
-		print('***Creating Worker node: {}***'.format(info[0]))
-		worker = WorkerNode(info) # Init worker
-		self.etcd.nodeList.append(worker) # Add to nodeList
-		print('New amount of nodes: {}\n'.format(len(self.etcd.nodeList)))
-		pass
+		worker = WorkerNode(info)
+		self.etcd.nodeList.append(worker)
+		print("Worker_Node " + worker.label + " created")
+		
 # CreateDeployment creates a Deployment object from a list of arguments and adds it to the etcd deploymentList
 	def CreateDeployment(self, info):
-		deployment = Deployment(info) # Init worker
-		print('***Creating Deployment {}***'.format(info[0]))
-		self.etcd.deploymentList.append(deployment) # Add to nodeList
-		print('New amount of deployments: {}\n'.format(len(self.etcd.deploymentList)))
-		pass
+		deployment = Deployment(info)
+		self.etcd.deploymentList.append(deployment)
+		print("Deployment " + deployment.deploymentLabel + " created")
+		
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
-	def RemoveDeployment(self, deploymentLabel):
-		# Remove deployment
-		print('***Removing deployment: {}***'.format(deploymentLabel[0]))
-		for i in self.etcd.deploymentList:
-			if i.deploymentLabel == deploymentLabel[0]:
-				self.etcd.deploymentList.remove(i)
-				del i
-			else:
-				continue
-		print('New amount of deployments: {}'.format(len(self.etcd.deploymentList)))
-		# Terminate pods
-		endPoints = self.GetEndPointsByLabel(deploymentLabel[0]) # For pod reference to deployment being removed
-		# print(endPoints)
-		for j in endPoints:
-			if j.deploymentLabel == deploymentLabel[0]:
-				self.TerminatePod(j) # Call local method to terminate pod based on endpoint
-			else:
-				continue
+	def RemoveDeployment(self, info):
+		for deployment in self.etcd.deploymentList:
+			if deployment.deploymentLabel == info[0]:
+				deployment.expectedReplicas = 0
+				
 # CreateEndpoint creates an EndPoint object using information from a provided Pod and Node and appends it 
 # to the endPointList in etcd
 	def CreateEndPoint(self, pod, worker):
-		print('***Creating endpoint {}***'.format(pod.deploymentLabel))
-		# label = pod.deploymentLabel[:-4]
-		label = pod.deploymentLabel
-		endPoint = EndPoint(pod, label, worker)
+		endPoint = EndPoint(pod, pod.deploymentLabel, worker)
 		self.etcd.endPointList.append(endPoint)
-		pass
-# CheckEndPoint checks that the associated pod is still present on the expected WorkerNode
-	def CheckEndPoint(self, endPoint):
-		result = False
-		for i in self.etcd.nodeList:
-			if endPoint.node == i:
-				result = True
-			else:
-				continue
-		return result
+		print("New Endpoint for "+endPoint.deploymentLabel+"- NODE: "+ endPoint.node.label + " POD: " + endPoint.pod.podName)
+
+
 # GetEndPointsByLabel returns a list of EndPoints associated with a given deployment
 	def GetEndPointsByLabel(self, deploymentLabel):
-		endPointList = []
-		for i in self.etcd.endPointList:
-			if i.deploymentLabel == deploymentLabel:
-				endPointList.append(i)
-			else:
-				continue
-		return endPointList
+		endPoints = []
+		for endPoint in self.etcd.endPointList:
+			if endPoint.deploymentLabel == deploymentLabel:
+				endPoints.append(endPoint)
+		return endPoints
+
+#RemoveEndPoint removes the EndPoint from the list within etcd
+	def RemoveEndPoint(self, endPoint):
+		endPoint.node.available_cpu+=endPoint.pod.assigned_cpu
+		print("Removing EndPoint for: "+endPoint.deploymentLabel)
+		self.etcd.endPointList.remove(endPoint)
+
+#GeneratePodName creates a random label for a pod
+	def GeneratePodName(self):
+		label = random.randint(111,999)
+		for pod in self.etcd.runningPodList:
+			if pod.podName == label:
+				label = self.GeneratePodName()
+		for pod in self.etcd.pendingPodList:
+			if pod.podName == label:
+				label = self.GeneratePodName()
+		return label
+
+
 # CreatePod finds the resource allocations associated with a deployment and creates a pod using those metrics
-	def CreatePod(self, deploymentLabel):
-		name = '{}_POD_{}'.format(deploymentLabel, str(randrange(1, 100)))
-		# name = '{}_POD'.format(deploymentLabel)
-		# name = deploymentLabel
-		print('***Creating new pod: {}***\n'.format(name))
-		deployment = Deployment
-		for i in self.etcd.deploymentList:
-			if i.deploymentLabel == deploymentLabel:
-				deployment = i
-			else:
-				continue
-		pod = Pod(name, deployment.cpuCost, deploymentLabel)
+	def CreatePod(self, deployment):
+		podName = deployment.deploymentLabel + "_" + str(self.GeneratePodName())
+		pod = Pod(podName, deployment.cpuCost, deployment.deploymentLabel)
+		print("Pod " + pod.podName + " created")
 		self.etcd.pendingPodList.append(pod)
-		pass
-# GetPod returns the pod object stored in the internal podList of a WorkerNode
+		
+# GetPod returns the pod object associated with an EndPoint
 	def GetPod(self, endPoint):
-		for i in endPoint.node.podList:
-			if endPoint.pod == i:
-				pod = i
-			else:
-				continue
-		return pod
-# TerminatePod finds the pod associated with a given EndPoint and sets it's status to 'TERMINATING'
-# No new requests will be sent to a pod marked 'TERMINATING'. Once its current requests have been handled,
-# it will be deleted by the Kubelet
+		return endPoint.pod
+
+#TerminatePod gracefully shuts down a Pod
 	def TerminatePod(self, endPoint):
-		print('***Terminating pod: {}***\n'.format(endPoint.pod.podName))
 		pod = endPoint.pod
-		pod.status = 'TERMINATING'
-		pass
+		pod.status="TERMINATING"
+		self.RemoveEndPoint(endPoint)
+		print("Removing Pod "+pod.podName)
+
+
 # CrashPod finds a pod from a given deployment and sets its status to 'FAILED'
 # Any resource utilisation on the pod will be reset to the base 0
-	def CrashPod(self, deploymentLabel):
-		endPoints = self.GetEndPointsByLabel(deploymentLabel[0])
-		for i in endPoints:
-			print('***Crashing pod: {}'.format(i.pod.podName))
-			i.pod.status = 'FAILED'
-# AssignNode takes a pod in the pendingPodList and transfers it to the internal podList of a specified WorkerNode
-	def AssignNode(self, pod, worker):
-		self.etcd.pendingPodList.remove(pod)
-		worker.podList.append(pod)
-#	pushReq adds the incoming request to the handling queue	
-	def PushReq(self, info):
-	    self.etcd.reqCreator.submit(self.ReqHandle, info)
+	def CrashPod(self, info):
+		endPoints = self.GetEndPointsByLabel(info[0])
+		if len(endPoints) == 0:
+			print("No Pods to crash")
+		else:
+			print("GETTING PODS")
+			pod = self.GetPod(endPoints[0])
+			pod.status = "FAILED"
+			pod.crash.set()
+			print ("Pod "+pod.podName+" crashed")
 
-#Creates requests and notifies the handler of request to be dealt with
-	def ReqHandle(self, info): # reqAppend. This does not handle only adds requests singly
-		self.etcd.pendingReqs.append(Request(self, info))
+#	Alter these method so that the requests are pushed to Deployments instead of etcd
+	def PushReq(self, info):
+		self.etcd.reqCreator.submit(self.ReqPusher, info)
+
+
+	def ReqPusher(self, info):
+		self.etcd.pendingReqs.append(Request(info))
 		self.requestWaiting.set()

@@ -1,7 +1,7 @@
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
+from request import Request
 import threading
-import time
 
 #The Pod is the unit of scaling within Kubernetes. It encapsulates the running containerized application
 #name is the name of the Pod. This is the deploymentLabel with the replica number as a suffix. ie "deploymentA1"
@@ -10,24 +10,25 @@ import time
 #deploymentLabel is the label of the Deployment that the Pod is managed by
 #status is a string that communicates the Pod's availability. ['PENDING','RUNNING', 'TERMINATING', 'FAILED']
 #the pool is the threads that are available for request handling on the pod
+#reqs are the active or queued requests
 class Pod:
-	# def __init__(self, NAME, ASSIGNED_CPU, ASSIGNED_MEM, AVAILABLE_CPU, AVAILABLE_MEM, DEPLABEL):
 	def __init__(self, NAME, ASSIGNED_CPU, DEPLABEL):
 		self.podName = NAME
-		self.available_cpu = ASSIGNED_CPU
+		self.assigned_cpu = int(ASSIGNED_CPU)
+		self.available_cpu = int(ASSIGNED_CPU)
 		self.deploymentLabel = DEPLABEL
 		self.status = "PENDING"
 		self.crash = threading.Event()
 		self.pool = ThreadPoolExecutor(max_workers=ASSIGNED_CPU)
+		self.requests = []
 
-	def HandleRequest(self, EXECTIME):
-		if self.pool._shutdown != True:
-			print('***Pod: {} Handling request***'.format(self.podName))
-			self.pool.submit(self.crash.wait(timeout=EXECTIME)) # Handling
-			self.available_cpu -= EXECTIME
-			time.sleep(EXECTIME)
-			self.available_cpu += EXECTIME
-			self.pool.shutdown(True)
-			return
-		else:
-			return
+	def HandleRequest(self, REQUEST):
+		def ThreadHandler():
+			crashStatus = self.crash.wait(timeout=REQUEST.execTime)
+			if crashStatus:
+				print("Request_"+REQUEST.label+" failed")
+			else: 
+				print("Request_"+REQUEST.label+" Completed")
+		self.requests.append(self.pool.submit(ThreadHandler))	
+	
+	

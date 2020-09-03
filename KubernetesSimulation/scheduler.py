@@ -13,27 +13,22 @@ class Scheduler(threading.Thread):
 		self.time = LOOPTIME
 	
 	def __call__(self):
-		print('Scheduler start')
+		print("Scheduler start")
 		while self.running:
+			newPending = []
 			with self.apiServer.etcdLock:
-				if len(self.apiServer.etcd.pendingPodList) > 0:
-					for pod in self.apiServer.etcd.pendingPodList: # iterate pods
-							for worker in self.apiServer.etcd.nodeList: # iterate workerNodes
-								if worker.available_cpu >= pod.available_cpu: # check cpu availability
-									self.apiServer.CreateEndPoint(pod, worker) # create pod
-									# change to running
-									self.apiServer.etcd.pendingPodList.remove(pod) 
-									self.apiServer.etcd.runningPodList.append(pod)
-									pod.status = 'RUNNING'
-									# handle worker
-									worker.podList.append(pod)
-									worker.available_cpu -= pod.available_cpu
-									print('***Pod {} assigned to Node: {}***\n'.format(pod.podName, worker.label))
-									break
-								else: # not enough cpu resources
-									continue
-				else:
-					pass
-				print('Current scheduler pass metrics:\nPending pods: {}\nRunning pods: {}\n'.format(len(self.apiServer.etcd.pendingPodList), len(self.apiServer.etcd.runningPodList)))
+				for pod in self.apiServer.etcd.pendingPodList:
+					for worker in self.apiServer.etcd.nodeList:
+						if worker.status == "UP":
+							if worker.available_cpu >= pod.assigned_cpu:
+								pod.status = "RUNNING"
+								print("Assigning Pod "+ pod.podName+" to Node "+worker.label)
+								worker.available_cpu -= pod.assigned_cpu
+								self.apiServer.CreateEndPoint(pod, worker)
+								self.apiServer.etcd.runningPodList.append(pod)
+								break
+					if pod.status == "PENDING":
+						newPending.append(pod)
+				self.apiServer.etcd.pendingPodList = newPending
 			time.sleep(self.time)
-		print('SchedShutdown')
+		print("SchedShutdown")

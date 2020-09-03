@@ -1,7 +1,7 @@
 #EndPoint objects associate a Pod with a Deployment and a Node.
-#podName is the name of the Pod.
+#pod is the associated Pod.
 #deploymentLabel is the label of the Deployment.
-#nodeLabel is the label of the Node.
+#node is the associated Node
 #flag is the priority of the endpoint for request routing [0,1].
 
 class EndPoint:

@@ -13,15 +13,15 @@ class ReqHandler:
 		while self.running:
 			self.apiServer.requestWaiting.wait()
 			with self.apiServer.etcdLock:
-				if len(self.apiServer.etcd.pendingReqs) > 0: # list not empty
-					for req in self.apiServer.etcd.pendingReqs: # iterate reqs
-						for endPoint in self.apiServer.etcd.endPointList: # iterate endPoints
-							if endPoint.pod.status != 'TERMINATING' or endPoint.pod.status != 'FAILED': # ensure pod not marked for Termination or reQue
-								if endPoint.pod.deploymentLabel == req.deploymentLabel: # pod matches req
-									if endPoint.pod.status == 'RUNNING':
-										endPoint.pod.HandleRequest(req.execTime) # handle request
+				requests =  self.apiServer.etcd.pendingReqs.copy()
+				self.apiServer.etcd.pendingReqs.clear()
+				self.apiServer.requestWaiting.clear()
+			for request in requests:
+				endPoints = self.apiServer.GetEndPointsByLabel(request.deploymentLabel)
+				if len(endPoints)>0:
+					pod = endPoints[0].pod
+					pod.HandleRequest(request)
 				else:
-					pass
-			
-			self.apiServer.requestWaiting.clear()
+					print("No pod available to handle Request_"+request.label)
+				self.apiServer.requestWaiting.clear()
 		print("ReqHandlerShutdown")

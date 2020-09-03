@@ -14,16 +14,23 @@ class DepController:
 	def __call__(self):
 		print("depController start")
 		while self.running:
+			deployments= []
 			with self.apiServer.etcdLock:
-				if len(self.apiServer.etcd.deploymentList) > 0:
-					for deployment in self.apiServer.etcd.deploymentList:
-						if deployment.currentReplicas <= deployment.expectedReplicas:
-							while deployment.currentReplicas < deployment.expectedReplicas:
-								self.apiServer.CreatePod(deployment.deploymentLabel)
-								deployment.currentReplicas += 1
-						elif deployment.currentReplicas > deployment.expectedReplicas:
-							while deployment.currentReplicas > deployment.expectedReplicas:
-								self.apiServer.TerminatePod(self.apiServer.GetEndPointsByLabel(deployment.deploymentLabel))
-								deployment.currentReplicas -= 1
+				for deployment in self.apiServer.etcd.deploymentList:
+					while deployment.currentReplicas < deployment.expectedReplicas:
+						self.apiServer.CreatePod(deployment)
+						deployment.currentReplicas +=1
+					while deployment.currentReplicas > deployment.expectedReplicas:
+						endPoints = self.apiServer.GetEndPointsByLabel(deployment.deploymentLabel)
+						for endPoint in endPoints:
+							self.apiServer.TerminatePod(endPoint)
+							deployment.currentReplicas-=1
+						for pod in self.apiServer.etcd.pendingPodList:
+							if pod.deploymentLabel == deployment.deploymentLabel:
+								self.apiServer.etcd.pendingPodList.remove(pod)
+								deployment.currentReplicas-=1
+					if deployment.expectedReplicas > 0:
+						deployments.append(deployment)
+				self.apiServer.etcd.deploymentList = deployments
 			time.sleep(self.time)
 		print("DepContShutdown")
