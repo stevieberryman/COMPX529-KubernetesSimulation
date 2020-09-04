@@ -1,3 +1,4 @@
+import threading
 #Deployment objects set the configuration and expected number of Pod objects
 #deploymentLabel is the label associated with the deployment.
 #currentReplicas is the number of pods currently running that are associated with 
@@ -11,3 +12,5 @@ class Deployment:
 		self.currentReplicas = 0
 		self.expectedReplicas = int(INFOLIST[1])
 		self.cpuCost = int(INFOLIST[2])
+		self.lock = threading.Lock()
+		self.waiting = threading.Event()

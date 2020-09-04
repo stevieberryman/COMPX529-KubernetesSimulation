@@ -36,6 +36,7 @@ def printStates(f, apiServer):
 _nodeCtlLoop = 2
 _depCtlLoop = 2
 _scheduleCtlLoop =2
+_hpaCtlLoop = 2
 
 apiServer = APIServer()
 depController = DepController(apiServer, _depCtlLoop)
