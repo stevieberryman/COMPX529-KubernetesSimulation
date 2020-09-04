@@ -22,6 +22,14 @@ class APIServer:
 # 	GetDeployments method returns the list of deployments stored in etcd 	
 	def GetDeployments(self):
 		return self.etcd.deploymentList.copy()
+
+	def GetDepByLabel(self, deploymentLabel):
+		deployments = self.GetDeployments()
+		for deployment in deployments:
+			if deployment.deploymentLabel == deploymentLabel:
+				return deployment
+			else:
+				print('Deployment not found')
 		
 #	GetWorkers method returns the list of WorkerNodes stored in etcd
 	def GetWorkers(self):

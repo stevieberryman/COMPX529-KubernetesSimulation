@@ -5,8 +5,8 @@ from api_server import APIServer
 from req_handler import ReqHandler
 from node_controller import NodeController
 from scheduler import Scheduler
-#from hpa import HPA
-#from load_balancer import LoadBalancer
+from hpa import HPA
+from load_balancer import LoadBalancer
 import time
 
 
@@ -57,25 +57,26 @@ print("ReadingFile")
 instructions = open("instructions.txt", "r")
 commands = instructions.readlines()
 for command in commands:
+	print(command)
 	cmdAttributes = command.split()
 	print(str(cmdAttributes))
 	with apiServer.etcdLock:
 		if cmdAttributes[0] == 'Deploy':
 			apiServer.CreateDeployment(cmdAttributes[1:])
-			deployment = apiServer.GetDepByLabelcmdAttributes[1]
-			#loadbalancer = LoadBalancer(apiServer, deployment)
-			#lbThread = threading.Thread(target=loadbalancer)
-			#lbThread.start()
+			deployment = apiServer.GetDepByLabel(cmdAttributes[1])
+			loadbalancer = LoadBalancer(apiServer, deployment)
+			lbThread = threading.Thread(target=loadbalancer)
+			lbThread.start()
 		elif cmdAttributes[0] == 'AddNode':
 			apiServer.CreateWorker(cmdAttributes[1:])
 		elif cmdAttributes[0] == 'DeleteDeployment':
 			apiServer.RemoveDeployment(cmdAttributes[1:])
 		elif cmdAttributes[0] == 'ReqIn':
 			apiServer.PushReq(cmdAttributes[1:])
-		#elif cmdAttributes[0] == 'CreateHPA':
-			#hpa = HPA(apiServer, _hpaCtlLoop, cmdAttributes[1:])
-			#hpaThread = threading.Thread(target=hpa)
-			#hpaThread.start()
+		elif cmdAttributes[0] == 'CreateHPA':
+			hpa = HPA(apiServer, _hpaCtlLoop, cmdAttributes[1:])
+			hpaThread = threading.Thread(target=hpa)
+			hpaThread.start()
 		elif cmdAttributes[0] == 'CrashPod':
 			apiServer.CrashPod(cmdAttributes[1:])
 	if cmdAttributes[0] == 'Sleep':
