@@ -128,3 +128,20 @@ dmypy.json
 # Pyre type checker
 .pyre/
 KubernetesSimulation/kubernetesEnv
+KubernetesSimulation/KubenetesEnv/pyvenv.cfg
+KubernetesSimulation/KubenetesEnv/Scripts/activate
+KubernetesSimulation/KubenetesEnv/Scripts/activate.bat
+KubernetesSimulation/KubenetesEnv/Scripts/Activate.ps1
+KubernetesSimulation/KubenetesEnv/Scripts/deactivate.bat
+KubernetesSimulation/KubenetesEnv/Scripts/easy_install-3.8.exe
+KubernetesSimulation/KubenetesEnv/Scripts/easy_install.exe
+KubernetesSimulation/KubenetesEnv/Scripts/pip.exe
+KubernetesSimulation/KubenetesEnv/Scripts/pip3.8.exe
+KubernetesSimulation/KubenetesEnv/Scripts/pip3.exe
+KubernetesSimulation/KubenetesEnv/Scripts/python_d.exe
+KubernetesSimulation/KubenetesEnv/Scripts/python.exe
+KubernetesSimulation/KubenetesEnv/Scripts/pythonw_d.exe
+KubernetesSimulation/KubenetesEnv/Scripts/pythonw.exe
+KubernetesSimulation/.vscode/settings.json
+.vscode/launch.json
+.vscode/settings.json
