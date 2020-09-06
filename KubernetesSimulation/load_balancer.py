@@ -1,4 +1,5 @@
 from api_server import APIServer
+from deployment  import Deployment
 import time
 
 #LoadBalancer distributes requests to pods in Deployments
@@ -8,16 +9,49 @@ class LoadBalancer:
 		self.apiServer = APISERVER
 		self.deployment = DEPLOYMENT
 		self.running = True
+		requests = []
 	
 	def __call__(self):
-		print("LoadBalancer start")
+		pass
+
+class RoundRobinLoadBalancer(LoadBalancer):
+	def __call__(self):
+		print("RoundRobinLoadBalancer start")
 		while self.running:
 			self.deployment.waiting.wait()
 			with self.deployment.lock:
-				requests = self.deployment.pendingReqs.copy
-				self.deployment.pendingReqs.clear
-			for request in self.requests:
-				pass
+				while len(self.deployment.pendingReqs) > 0:
+					self.requests = self.deployment.pendingReqs.copy()
+					self.deployment.pendingReqs.clear()
+				if len(self.requests) > 0:
+					for request in self.requests:
+						# Request code
+						print('RoundRobin')
+						endpoints = self.apiServer.GetEndPointsByLabel(request.deploymentLabel)
+						for endpoint in endpoints:
+							if endpoint.pod.available_cpu > 0:
+								endpoint.pod.available_cpu -= 1
+								endpoint.pod.HandleRequest(request)
+				self.deployment.waiting.clear()
+		print("ReqHandlerShutdown")
 
-			self.deployment.waiting.clear()
+class UtilityAwareLoadBalancer(LoadBalancer):
+	def __call__(self):
+		print("UtilityAwareLoadBalancer start")
+		while self.running:
+			self.deployment.waiting.wait()
+			with self.deployment.lock:
+				while len(self.deployment.pendingReqs) > 0:
+					self.requests = self.deployment.pendingReqs.copy()
+					self.deployment.pendingReqs.clear()
+				if len(self.requests) > 0:
+					for request in self.requests:
+						# Request code
+						print('UtilityAware')
+						endpoints = self.apiServer.GetEndPointsByLabel(request.deploymentLabel)
+						for endpoint in endpoints:
+							if endpoint.pod.available_cpu > 0:
+								endpoint.pod.available_cpu -= 1
+								endpoint.pod.HandleRequest(request)
+				self.deployment.waiting.clear()	
 		print("ReqHandlerShutdown")

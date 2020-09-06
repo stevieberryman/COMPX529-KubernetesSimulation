@@ -14,3 +14,4 @@ class Deployment:
 		self.cpuCost = int(INFOLIST[2])
 		self.lock = threading.Lock()
 		self.waiting = threading.Event()
+		self.pendingReqs = []

@@ -29,6 +29,7 @@ class Pod:
 				print("Request_"+REQUEST.label+" failed")
 			else: 
 				print("Request_"+REQUEST.label+" Completed")
+				self.available_cpu += 1
 		self.requests.append(self.pool.submit(ThreadHandler))	
 	
 	

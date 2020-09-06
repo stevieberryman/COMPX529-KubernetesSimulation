@@ -15,7 +15,7 @@ class APIServer:
 	def __init__(self):
 		self.etcd = Etcd()
 		self.etcdLock = threading.Lock()
-		self.kubeletList = [] 
+		self.kubeletList = []
 		self.requestWaiting = threading.Event()
 		self.controller = PIDController(0,0,0)#Tune your controller
 	
@@ -29,7 +29,7 @@ class APIServer:
 			if deployment.deploymentLabel == deploymentLabel:
 				return deployment
 			else:
-				print('Deployment not found')
+				continue
 		
 #	GetWorkers method returns the list of WorkerNodes stored in etcd
 	def GetWorkers(self):

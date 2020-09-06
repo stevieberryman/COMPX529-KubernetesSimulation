@@ -6,7 +6,7 @@ from req_handler import ReqHandler
 from node_controller import NodeController
 from scheduler import Scheduler
 from hpa import HPA
-from load_balancer import LoadBalancer
+from load_balancer import *
 import time
 
 
@@ -65,7 +65,8 @@ for command in commands:
 		if cmdAttributes[0] == 'Deploy':
 			apiServer.CreateDeployment(cmdAttributes[1:])
 			deployment = apiServer.GetDepByLabel(cmdAttributes[1])
-			loadbalancer = LoadBalancer(apiServer, deployment)
+			loadbalancer = RoundRobinLoadBalancer(apiServer, deployment) # Round robin approach
+			# loadbalancer = UtilityAwareLoadBalancer(apiServer, deployment) # Utiliy aware approach
 			lbThread = threading.Thread(target=loadbalancer)
 			lbThread.start()
 		elif cmdAttributes[0] == 'AddNode':
