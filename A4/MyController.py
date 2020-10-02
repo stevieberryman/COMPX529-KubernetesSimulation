@@ -12,7 +12,6 @@ class PIDController:
 		self.prevError = 0
 	
 	def work( self, e):
-		e = max( 0, int(round(e)) )
 		self.totalError += e
 	
 		up = e*self.kp

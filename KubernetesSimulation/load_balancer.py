@@ -28,10 +28,13 @@ class RoundRobinLoadBalancer(LoadBalancer):
 						# Request code
 						print('RoundRobin')
 						endpoints = self.apiServer.GetEndPointsByLabel(request.deploymentLabel)
-						for endpoint in endpoints:
-							if endpoint.pod.available_cpu > 0:
+						if len(endpoints)>0:
+							for endpoint in endpoints:
 								endpoint.pod.available_cpu -= 1
 								endpoint.pod.HandleRequest(request)
+								break
+						else:
+							print("No pod available to handle Request_"+request.label)
 				self.deployment.waiting.clear()
 		print("ReqHandlerShutdown")
 
@@ -49,9 +52,15 @@ class UtilityAwareLoadBalancer(LoadBalancer):
 						# Request code
 						print('UtilityAware')
 						endpoints = self.apiServer.GetEndPointsByLabel(request.deploymentLabel)
-						for endpoint in endpoints:
-							if endpoint.pod.available_cpu > 0:
-								endpoint.pod.available_cpu -= 1
-								endpoint.pod.HandleRequest(request)
+						if len(endpoints)>0:
+							for endpoint in endpoints:
+								if endpoint.pod.available_cpu > 0:
+									if endpoint.pod.available_cpu > 1:
+										print("Pod", endpoint.pod.podName, "handling Request_"+request.label)
+										endpoint.pod.available_cpu -= 1
+										endpoint.pod.HandleRequest(request)
+										break
+						else:
+							print("No pod available to handle Request_"+request.label)
 				self.deployment.waiting.clear()	
 		print("ReqHandlerShutdown")

@@ -65,8 +65,8 @@ for command in commands:
 		if cmdAttributes[0] == 'Deploy':
 			apiServer.CreateDeployment(cmdAttributes[1:])
 			deployment = apiServer.GetDepByLabel(cmdAttributes[1])
-			loadbalancer = RoundRobinLoadBalancer(apiServer, deployment) # Round robin approach
-			# loadbalancer = UtilityAwareLoadBalancer(apiServer, deployment) # Utiliy aware approach
+			# loadbalancer = RoundRobinLoadBalancer(apiServer, deployment) # Round robin approach
+			loadbalancer = UtilityAwareLoadBalancer(apiServer, deployment) # Utiliy aware approach
 			lbThread = threading.Thread(target=loadbalancer)
 			lbThread.start()
 		elif cmdAttributes[0] == 'AddNode':

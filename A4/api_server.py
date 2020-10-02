@@ -2,7 +2,6 @@ from deployment import Deployment
 from end_point import EndPoint
 from etcd import Etcd
 from pod import Pod
-from MyController import PIDController
 from request import Request
 from worker_node import WorkerNode
 import threading
@@ -15,22 +14,11 @@ class APIServer:
 	def __init__(self):
 		self.etcd = Etcd()
 		self.etcdLock = threading.Lock()
-		self.kubeletList = []
 		self.requestWaiting = threading.Event()
-		# self.controller = PIDController(0.0001,0.01,0) #PI
-		self.controller = PIDController(0.01,0.001,0.01) #PID
 	
 # 	GetDeployments method returns the list of deployments stored in etcd 	
 	def GetDeployments(self):
 		return self.etcd.deploymentList.copy()
-
-	def GetDepByLabel(self, deploymentLabel):
-		deployments = self.GetDeployments()
-		for deployment in deployments:
-			if deployment.deploymentLabel == deploymentLabel:
-				return deployment
-			else:
-				continue
 		
 #	GetWorkers method returns the list of WorkerNodes stored in etcd
 	def GetWorkers(self):
@@ -48,26 +36,27 @@ class APIServer:
 	def CreateWorker(self, info):
 		worker = WorkerNode(info)
 		self.etcd.nodeList.append(worker)
-		print("Worker_Node " + worker.label + " created")
+		#print("Worker_Node " + worker.label + " created")
 		
 # CreateDeployment creates a Deployment object from a list of arguments and adds it to the etcd deploymentList
 	def CreateDeployment(self, info):
 		deployment = Deployment(info)
 		self.etcd.deploymentList.append(deployment)
-		print("Deployment " + deployment.deploymentLabel + " created")
+		#print("Deployment " + deployment.deploymentLabel + " created")
 		
 # RemoveDeployment deletes the associated Deployment object from etcd and sets the status of all associated pods to 'TERMINATING'
 	def RemoveDeployment(self, info):
 		for deployment in self.etcd.deploymentList:
 			if deployment.deploymentLabel == info[0]:
 				deployment.expectedReplicas = 0
+				deployment.waiting.set()
 				
 # CreateEndpoint creates an EndPoint object using information from a provided Pod and Node and appends it 
 # to the endPointList in etcd
 	def CreateEndPoint(self, pod, worker):
 		endPoint = EndPoint(pod, pod.deploymentLabel, worker)
 		self.etcd.endPointList.append(endPoint)
-		print("New Endpoint for "+endPoint.deploymentLabel+"- NODE: "+ endPoint.node.label + " POD: " + endPoint.pod.podName)
+		#print("New Endpoint for "+endPoint.deploymentLabel+"- NODE: "+ endPoint.node.label + " POD: " + endPoint.pod.podName)
 
 
 # GetEndPointsByLabel returns a list of EndPoints associated with a given deployment
@@ -78,10 +67,18 @@ class APIServer:
 				endPoints.append(endPoint)
 		return endPoints
 
+#GetDepByLabel returns the Deployment object associated with a deploymentLabel:
+	def GetDepByLabel(self, deploymentLabel):
+		deployments = list(filter(lambda x: x.deploymentLabel == deploymentLabel, self.etcd.deploymentList))
+		if len(deployments) == 1:
+			return deployments[0]
+		else:
+			print('Deployment '+deploymentLabel+' not found')
+			
 #RemoveEndPoint removes the EndPoint from the list within etcd
 	def RemoveEndPoint(self, endPoint):
 		endPoint.node.available_cpu+=endPoint.pod.assigned_cpu
-		print("Removing EndPoint for: "+endPoint.deploymentLabel)
+		#print("Removing EndPoint for: "+endPoint.deploymentLabel)
 		self.etcd.endPointList.remove(endPoint)
 
 #GeneratePodName creates a random label for a pod
@@ -100,19 +97,22 @@ class APIServer:
 	def CreatePod(self, deployment):
 		podName = deployment.deploymentLabel + "_" + str(self.GeneratePodName())
 		pod = Pod(podName, deployment.cpuCost, deployment.deploymentLabel)
-		print("Pod " + pod.podName + " created")
+		#print("Pod " + pod.podName + " created")
 		self.etcd.pendingPodList.append(pod)
 		
 # GetPod returns the pod object associated with an EndPoint
 	def GetPod(self, endPoint):
-		return endPoint.pod
+		if endPoint.pod == None:
+			print("No Pod Found")
+		else:
+			return endPoint.pod
 
 #TerminatePod gracefully shuts down a Pod
 	def TerminatePod(self, endPoint):
 		pod = endPoint.pod
 		pod.status="TERMINATING"
 		self.RemoveEndPoint(endPoint)
-		print("Removing Pod "+pod.podName)
+		#print("Terminating "+pod.podName)
 
 
 # CrashPod finds a pod from a given deployment and sets its status to 'FAILED'
@@ -122,11 +122,11 @@ class APIServer:
 		if len(endPoints) == 0:
 			print("No Pods to crash")
 		else:
-			print("GETTING PODS")
+			#print("GETTING PODS")
 			pod = self.GetPod(endPoints[0])
 			pod.status = "FAILED"
 			pod.crash.set()
-			print ("Pod "+pod.podName+" crashed")
+			#print ("Pod "+pod.podName+" crashed")
 
 #	Alter these method so that the requests are pushed to Deployments instead of etcd
 	def PushReq(self, info):
@@ -134,5 +134,8 @@ class APIServer:
 
 
 	def ReqPusher(self, info):
-		self.etcd.pendingReqs.append(Request(info))
-		self.requestWaiting.set()
+			deployment = self.GetDepByLabel(info[1])
+			with deployment.lock:
+				deployment.pendingReqs.append(Request(info))
+				deployment.waiting.set()
+		
